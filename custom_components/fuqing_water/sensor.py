@@ -10,7 +10,7 @@
 import asyncio
 import logging
 from datetime import timedelta, datetime
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -785,8 +785,22 @@ async def _import_water_history_to_statistics(hass: HomeAssistant, entry: Config
         from homeassistant.components.recorder.statistics import (
             async_add_external_statistics,
             StatisticMetaData,
-            StatisticMeanType,
         )
+
+        try:
+            # HA 2026.11 起统计元数据改用 mean_type 枚举，旧版本没有该定义
+            from homeassistant.components.recorder.statistics import (
+                StatisticMeanType,
+            )
+        except ImportError:
+            StatisticMeanType = None  # type: ignore[assignment,misc]
+
+        def _build_meta(**kwargs: Any) -> StatisticMetaData:
+            """丢弃当前 HA 版本不支持的字段（unit_class / mean_type 等）"""
+            allowed = getattr(StatisticMetaData, "__annotations__", {})
+            return cast(
+                StatisticMetaData, {k: v for k, v in kwargs.items() if k in allowed}
+            )
 
         usage_stats = []
         cost_stats = []
@@ -836,10 +850,12 @@ async def _import_water_history_to_statistics(hass: HomeAssistant, entry: Config
                 }
             )
 
+        mean_type = StatisticMeanType.NONE if StatisticMeanType is not None else None
+
         if usage_stats:
             async_add_external_statistics(
                 hass,
-                StatisticMetaData(
+                _build_meta(
                     has_mean=False,
                     has_sum=True,
                     name=f"历史月度用水量-{card_no}",
@@ -847,14 +863,14 @@ async def _import_water_history_to_statistics(hass: HomeAssistant, entry: Config
                     statistic_id=f"{DOMAIN}:{card_no}_monthly_water_usage",
                     unit_of_measurement="m³",
                     unit_class="volume",
-                    mean_type=StatisticMeanType.NONE,
+                    mean_type=mean_type,
                 ),
                 usage_stats,
             )
         if cost_stats:
             async_add_external_statistics(
                 hass,
-                StatisticMetaData(
+                _build_meta(
                     has_mean=False,
                     has_sum=True,
                     name=f"历史月度水费-{card_no}",
@@ -862,7 +878,7 @@ async def _import_water_history_to_statistics(hass: HomeAssistant, entry: Config
                     statistic_id=f"{DOMAIN}:{card_no}_monthly_water_cost",
                     unit_of_measurement="CNY",
                     unit_class=None,
-                    mean_type=StatisticMeanType.NONE,
+                    mean_type=mean_type,
                 ),
                 cost_stats,
             )
