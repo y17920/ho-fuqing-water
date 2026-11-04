@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Publish release with zip asset
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag matches manifest version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version=$(python -c "import json; print(json.load(open('custom_components/fuqing_water/manifest.json'))['version'])")
+          echo "tag=$tag manifest=$version"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::Tag $tag does not match manifest version $version"
+            exit 1
+          fi
+
+      - name: Build fuqing_water.zip
+        run: |
+          cd custom_components
+          zip -r ../fuqing_water.zip fuqing_water \
+            -x '*/__pycache__/*' '*.pyc' '*.pyo'
+          cd ..
+          unzip -l fuqing_water.zip
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" fuqing_water.zip --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" fuqing_water.zip \
+              --title "$GITHUB_REF_NAME" \
+              --generate-notes
+          fi

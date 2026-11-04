@@ -1,7 +1,7 @@
 # 福清水务 Home Assistant 集成
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-[![version](https://img.shields.io/badge/version-1.3.0-blue.svg)](https://github.com/y17920/ho-fuqing-water/releases)
+[![version](https://img.shields.io/badge/version-1.3.1-blue.svg)](https://github.com/y17920/ho-fuqing-water/releases)
 [![Validate](https://github.com/y17920/ho-fuqing-water/actions/workflows/validate.yml/badge.svg)](https://github.com/y17920/ho-fuqing-water/actions/workflows/validate.yml)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Changelog](https://img.shields.io/badge/changelog-CHANGELOG.md-blue.svg)](CHANGELOG.md)
@@ -31,9 +31,11 @@
 2. 仓库地址填写 `https://github.com/y17920/ho-fuqing-water`，类别选择 `Integration`
 3. 搜索并安装「福清水务」，重启 Home Assistant
 
+HACS 安装/升级时下载的是最新 GitHub Release 中的 `fuqing_water.zip` 附件。
+
 ### 方式二：手动安装
 
-1. 下载本仓库
+1. 在 [Releases](https://github.com/y17920/ho-fuqing-water/releases) 下载最新的 `fuqing_water.zip` 并解压
 2. 将 `custom_components/fuqing_water` 整个目录复制到 `<HA 配置目录>/custom_components/fuqing_water`
 3. 重启 Home Assistant
 
@@ -63,7 +65,8 @@ ho-fuqing-water/
 ├── custom_components/
 │   └── fuqing_water/          # 集成本体（HACS 只打包此目录）
 ├── .github/workflows/
-│   └── validate.yml           # HACS + hassfest 校验
+│   ├── validate.yml           # HACS + hassfest 校验
+│   └── release.yml            # 打 tag 时打包并发布 Release 附件
 ├── hacs.json                  # HACS 发布元数据
 ├── CHANGELOG.md               # 版本更新日志
 ├── LICENSE
@@ -80,16 +83,25 @@ python -m compileall custom_components/fuqing_water
 
 ### 发布新版本
 
+HACS 通过 `hacs.json` 的 `zip_release` 下载 GitHub Release 附件 `fuqing_water.zip`，因此**每个版本都必须以 GitHub Release 的形式发布**，仅打 tag 用户收不到更新。
+
 1. 修改 `custom_components/fuqing_water/manifest.json` 的 `version`（如 `1.3.1`）
 2. 在 [`CHANGELOG.md`](CHANGELOG.md) 中新增对应版本小节，并更新其中的对比链接
-3. 打 tag 并创建 GitHub Release，例如：
+3. 提交后打 tag 并推送：
 
 ```bash
-git tag v1.3.0
-git push origin v1.3.0
+git tag v1.3.1
+git push origin v1.3.1
 ```
 
-HACS 以 Release / tag 作为版本来源，缺失 Release 时用户无法看到更新。
+`Release` 工作流会自动校验 tag 与 `manifest.json` 版本一致，将 `custom_components/fuqing_water` 打包成 `fuqing_water.zip` 并创建（或更新）对应 Release。
+
+手动发布时同样必须上传 `fuqing_water.zip`，且 zip 内保持 `custom_components/fuqing_water/…` 的目录结构：
+
+```bash
+cd custom_components && zip -r ../fuqing_water.zip fuqing_water && cd ..
+gh release create v1.3.1 fuqing_water.zip --title v1.3.1 --generate-notes
+```
 
 ## 配置
 
@@ -223,7 +235,7 @@ service: fuqing_water.refresh_history
 
 ## 版本
 
-当前版本 **1.3.0**，完整变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本 **1.3.1**，完整变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 许可证
 

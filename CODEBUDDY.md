@@ -4,7 +4,9 @@
 
 This is a Home Assistant (HA) custom integration; it has no dedicated build system, linter config, or test suite checked in. The project is developed inside a running HA instance.
 
-Repository layout (HACS-publishable): the integration lives in `custom_components/fuqing_water/`; the repo root holds only `hacs.json`, `README.md`, `CHANGELOG.md`, `LICENSE`, `.github/workflows/validate.yml` and this file. Publish target: `https://github.com/y17920/ho-fuqing-water`. When bumping the version in `manifest.json`, add a matching section to `CHANGELOG.md`.
+Repository layout (HACS-publishable): the integration lives in `custom_components/fuqing_water/`; the repo root holds only `hacs.json`, `README.md`, `CHANGELOG.md`, `LICENSE`, `.github/workflows/{validate,release}.yml` and this file. Publish target: `https://github.com/y17920/ho-fuqing-water`. When bumping the version in `manifest.json`, add a matching section to `CHANGELOG.md`.
+
+Releases: `hacs.json` sets `zip_release: true` + `filename: fuqing_water.zip`, so HACS installs from the Release asset, not from the repo snapshot (a tag without a Release/asset means no update for users). Every version must therefore be published as a GitHub Release whose asset is `fuqing_water.zip` built from `custom_components/` (root of the zip is `custom_components/fuqing_water/...`). `.github/workflows/release.yml` does this automatically on `v*` tag push and fails when the tag differs from the `manifest.json` version.
 
 - **Syntax check**: `python -m compileall custom_components/fuqing_water` compiles all `.py` files and reports syntax errors without running HA. Useful as a fast sanity check after edits.
 
