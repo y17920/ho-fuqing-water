@@ -5,6 +5,7 @@
   抄表日期、户名地址、历史月均、累计用水量、累计水费等）
 - 首次初始化并发抓取近 2 年历史账单，合并去重后存 Storage
 - 当月未出账兜底：用水量/累计值保持上次有效值（RestoreEntity + 缓存）
+- 零用水月份补零：接口对 0 用水月份不返回账单，内存中按 0 补齐缺失月份
 - 统计注入：async_add_external_statistics 官方 API，支持能源面板
 """
 import asyncio
@@ -289,6 +290,86 @@ def _calc_current_step(usage: float) -> int:
     return 3
 
 
+def _iter_months(start_key: str, end_key: str):
+    """按 billing_month（YYYYMM）从 start 递增到 end，逐月产出 YYYYMM"""
+    year, month = int(start_key[:4]), int(start_key[4:6])
+    end_year, end_month = int(end_key[:4]), int(end_key[4:6])
+    while (year, month) <= (end_year, end_month):
+        yield f"{year:04d}{month:02d}"
+        month += 1
+        if month > 12:
+            month = 1
+            year += 1
+
+
+def _empty_month_record(billing_month: str) -> dict:
+    """生成零用水占位记录（仅内存使用，不写回 Storage）"""
+    return {
+        "billing_month": billing_month,
+        "water_used": 0.0,
+        "bill_amount": 0.0,
+        "received_amount": 0.0,
+        "basics_fee": 0.0,
+        "sewage_fee": 0.0,
+        "unit_price": 0.0,
+        "last_reading": 0.0,
+        "current_reading": 0.0,
+        "last_read_date": "",
+        "current_read_date": "",
+        "meter_cycle": "",
+        "fee_state": "",
+        "late_fee": 0.0,
+        "fee_id": "",
+        "is_gap": True,
+    }
+
+
+def _fill_missing_months(history: Any) -> list:
+    """补齐历史区间内缺失的月份（0 用水占位，标记 is_gap=True）
+
+    抓包确认：某月 0 用水时接口不返回该月账单，因此区间内缺失的月份即代表 0 用水。
+    补零范围限定在「最早真实账单月 ~ 最新真实账单月」之间（两端均为真实账单）；
+    最新账单之后的月份不外推（可能只是尚未出账），当前月因而不受影响。
+    占位记录只参与月均、累计与统计注入，不写回 Storage，也不会被当作最新账单。
+    """
+    # 先剔除已有的占位记录，保证多次调用结果一致（幂等）
+    records = [
+        h
+        for h in (history or [])
+        if isinstance(h, dict) and not h.get("is_gap")
+    ]
+    real_months = {}
+    for h in records:
+        bm = str(h.get("billing_month") or "").strip()
+        if (
+            len(bm) == 6
+            and bm.isdigit()
+            and 2020 <= int(bm[:4]) <= 2035
+            and 1 <= int(bm[4:6]) <= 12
+        ):
+            real_months.setdefault(bm, h)
+
+    if len(real_months) < 2:
+        return records
+
+    months = sorted(real_months)
+    gaps = []
+    for bm in _iter_months(months[0], months[-1]):
+        if bm not in real_months:
+            gaps.append(bm)
+    if not gaps:
+        return records
+
+    _LOGGER.info(
+        "补零 %s 个零用水月份（该月 0 用水时接口不返回账单）: %s",
+        len(gaps),
+        ",".join(gaps),
+    )
+    filled = records + [_empty_month_record(bm) for bm in gaps]
+    filled.sort(key=lambda x: str(x.get("billing_month", "")), reverse=True)
+    return filled
+
+
 class FuqingWaterDataUpdateCoordinator(DataUpdateCoordinator):
     """福清水务数据更新协调器（单户号）"""
 
@@ -549,6 +630,10 @@ class FuqingWaterDataUpdateCoordinator(DataUpdateCoordinator):
                     except Exception as e:
                         _LOGGER.warning("初始化历史账单失败（可稍后重试）: %s", e)
 
+        # 3.5 区间内缺失月份补零（接口对 0 用水月份不返回账单，仅在内存中补齐，
+        #     不写回 Storage；月均与累计因此按完整月份区间计算）
+        history = _fill_missing_months(history)
+
         # 4. 统计计算（历史均值、与均值对比、累计值）
         if history:
             total_usage = sum(_to_float(h.get("water_used")) for h in history)
@@ -779,6 +864,8 @@ async def _import_water_history_to_statistics(hass: HomeAssistant, entry: Config
         _LOGGER.info("历史账单数据不足（%s 条），跳过统计注入", len(history))
         return
 
+    # 补零：区间内缺失月份按 0 用水生成统计点，避免能源面板出现断月
+    history = _fill_missing_months(history)
     history.sort(key=lambda b: str(b.get("billing_month", "")))
 
     try:
