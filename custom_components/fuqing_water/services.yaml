@@ -1,0 +1,10 @@
+refresh_history:
+  name: 刷新历史统计
+  description: 手动触发历史账单统计注入（用于修复能源面板数据）
+  fields:
+    entry_id:
+      name: 配置条目
+      description: 留空则刷新所有福清水务实例；也可指定单个配置条目 ID
+      example: 3f4c8b2e1d5a4f6b9c0d1e2f3a4b5c6d
+      selector:
+        text:

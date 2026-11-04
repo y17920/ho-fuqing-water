@@ -1,0 +1,45 @@
+{
+  "title": "福清水务",
+  "config": {
+    "step": {
+      "user": {
+        "title": "福清水务",
+        "description": "请粘贴从福清水务微信小程序抓包获取的 Token 和水费户号",
+        "data": {
+          "token": "Token（抓包获取）",
+          "card_no": "水费户号"
+        }
+      },
+      "reconfigure": {
+        "title": "重新配置福清水务",
+        "description": "Token 已过期，请为户号 {card_no} 重新粘贴从福清水务微信小程序抓包获取的 Token",
+        "data": {
+          "token": "Token（抓包获取）"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "网络异常，无法连接福清水务接口",
+      "invalid_auth": "Token 无效或户号无数据，请检查后重试",
+      "unknown": "未知错误"
+    },
+    "abort": {
+      "already_configured": "该户号已添加，请勿重复添加",
+      "reconfigure_successful": "重新配置成功"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "福清水务 - 轮询设置",
+        "description": "设置数据轮询间隔（小时），默认 1 小时",
+        "data": {
+          "poll_hours": "轮询间隔（小时）"
+        }
+      }
+    },
+    "error": {
+      "invalid_poll_hours": "轮询间隔需为 1–24 小时"
+    }
+  }
+}

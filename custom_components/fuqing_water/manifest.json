@@ -1,0 +1,12 @@
+{
+  "domain": "fuqing_water",
+  "name": "福清水务",
+  "version": "1.3.0",
+  "config_flow": true,
+  "documentation": "https://github.com/y17920/ho-fuqing-water",
+  "issue_tracker": "https://github.com/y17920/ho-fuqing-water/issues",
+  "requirements": [],
+  "codeowners": ["@y17920"],
+  "integration_type": "device",
+  "iot_class": "cloud_polling"
+}
