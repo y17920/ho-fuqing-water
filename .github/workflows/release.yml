@@ -27,11 +27,35 @@ jobs:
 
       - name: Build fuqing_water.zip
         run: |
-          cd custom_components
-          zip -r ../fuqing_water.zip fuqing_water \
-            -x '*/__pycache__/*' '*.pyc' '*.pyo'
-          cd ..
+          python - <<'PY'
+          import pathlib
+          import zipfile
+
+          src = pathlib.Path("custom_components/fuqing_water")
+          skip = {"__pycache__"}
+          with zipfile.ZipFile("fuqing_water.zip", "w", zipfile.ZIP_DEFLATED) as zf:
+              for path in sorted(src.rglob("*")):
+                  if not path.is_file():
+                      continue
+                  if skip & set(path.parts) or path.suffix in {".pyc", ".pyo"}:
+                      continue
+                  zf.write(path, path.relative_to(src).as_posix())
+          PY
           unzip -l fuqing_water.zip
+
+      - name: Verify zip layout
+        run: |
+          python - <<'PY'
+          import sys
+          import zipfile
+
+          names = set(zipfile.ZipFile("fuqing_water.zip").namelist())
+          required = {"manifest.json", "__init__.py", "const.py"}
+          missing = required - names
+          if missing:
+              sys.exit(f"zip 根目录缺少 {sorted(missing)}：HACS 会解压到 custom_components/fuqing_water/，不允许再套一层目录")
+          print("zip layout OK")
+          PY
 
       - name: Publish GitHub Release
         env:

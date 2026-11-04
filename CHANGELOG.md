@@ -5,6 +5,13 @@
 
 ## [Unreleased]
 
+## [1.3.3] - 2026-11-04
+
+### 修复
+
+- Release 附件 `fuqing_water.zip` 改为扁平结构（`manifest.json`、`__init__.py` 位于 zip 根目录）：HACS 会把 zip 直接解压到 `config/custom_components/fuqing_water/`，旧版 zip 内多套了一层 `fuqing_water/` 会导致安装后目录多一级、集成无法加载
+- `Release` 工作流新增 zip 结构校验，根目录缺少 `manifest.json` / `__init__.py` / `const.py` 时直接失败，避免再次发布错误结构的附件
+
 ## [1.3.2] - 2026-11-04
 
 ### 修复
@@ -55,7 +62,8 @@
 - Token 过期持久通知与 UI 内重新配置流程（reconfigure）
 - 适配 HA 2026.11 统计 API（`StatisticMetaData.unit_class`）
 
-[Unreleased]: https://github.com/y17920/ho-fuqing-water/compare/v1.3.2...HEAD
+[Unreleased]: https://github.com/y17920/ho-fuqing-water/compare/v1.3.3...HEAD
+[1.3.3]: https://github.com/y17920/ho-fuqing-water/compare/v1.3.2...v1.3.3
 [1.3.2]: https://github.com/y17920/ho-fuqing-water/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/y17920/ho-fuqing-water/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/y17920/ho-fuqing-water/compare/v1.2.0...v1.3.0
