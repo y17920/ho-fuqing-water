@@ -1,7 +1,7 @@
 # 福清水务 Home Assistant 集成
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/hacs/integration)
-[![version](https://img.shields.io/badge/version-1.3.1-blue.svg)](https://github.com/y17920/ho-fuqing-water/releases)
+[![version](https://img.shields.io/badge/version-1.3.2-blue.svg)](https://github.com/y17920/ho-fuqing-water/releases)
 [![Validate](https://github.com/y17920/ho-fuqing-water/actions/workflows/validate.yml/badge.svg)](https://github.com/y17920/ho-fuqing-water/actions/workflows/validate.yml)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Changelog](https://img.shields.io/badge/changelog-CHANGELOG.md-blue.svg)](CHANGELOG.md)
@@ -85,13 +85,13 @@ python -m compileall custom_components/fuqing_water
 
 HACS 通过 `hacs.json` 的 `zip_release` 下载 GitHub Release 附件 `fuqing_water.zip`，因此**每个版本都必须以 GitHub Release 的形式发布**，仅打 tag 用户收不到更新。
 
-1. 修改 `custom_components/fuqing_water/manifest.json` 的 `version`（如 `1.3.1`）
+1. 修改 `custom_components/fuqing_water/manifest.json` 的 `version`（如 `1.3.2`）
 2. 在 [`CHANGELOG.md`](CHANGELOG.md) 中新增对应版本小节，并更新其中的对比链接
 3. 提交后打 tag 并推送：
 
 ```bash
-git tag v1.3.1
-git push origin v1.3.1
+git tag v1.3.2
+git push origin v1.3.2
 ```
 
 `Release` 工作流会自动校验 tag 与 `manifest.json` 版本一致，将 `custom_components/fuqing_water` 打包成 `fuqing_water.zip` 并创建（或更新）对应 Release。
@@ -100,7 +100,7 @@ git push origin v1.3.1
 
 ```bash
 cd custom_components && zip -r ../fuqing_water.zip fuqing_water && cd ..
-gh release create v1.3.1 fuqing_water.zip --title v1.3.1 --generate-notes
+gh release create v1.3.2 fuqing_water.zip --title v1.3.2 --generate-notes
 ```
 
 ## 配置
@@ -235,7 +235,7 @@ service: fuqing_water.refresh_history
 
 ## 版本
 
-当前版本 **1.3.1**，完整变更记录见 [CHANGELOG.md](CHANGELOG.md)。
+当前版本 **1.3.2**，完整变更记录见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 许可证
 

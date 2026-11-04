@@ -5,14 +5,19 @@
 
 ## [Unreleased]
 
+## [1.3.2] - 2026-11-04
+
+### 修复
+
+- `hacs.json` 最低支持版本由 `2026.11.0` 降为 `2024.11.0`，避免旧版 HA 在 HACS 中被「需要更高版本」拦截
+- 统计元数据改为按当前 HA 支持的字段构造：旧版本没有 `StatisticMeanType` 时自动省略 `mean_type` / `unit_class`，不再整段跳过外部统计注入
+
 ## [1.3.1] - 2026-11-04
 
 ### 变更
 
 - 发布方式改为 GitHub Release 附件：`hacs.json` 启用 `zip_release` 并指定 `filename: fuqing_water.zip`，HACS 安装/升级时下载 Release 中的 zip，而非仓库源码快照
 - 新增 `Release` 工作流（`.github/workflows/release.yml`）：推送 `v*` tag 时校验 tag 与 `manifest.json` 版本一致，打包 `custom_components/fuqing_water` 为 `fuqing_water.zip` 并创建/更新 Release 附件
-- `hacs.json` 最低支持版本由 `2026.11.0` 降为 `2024.11.0`，避免旧版 HA 在 HACS 中被「需要更高版本」拦截
-- 统计元数据改为按当前 HA 支持的字段构造：旧版本没有 `StatisticMeanType` 时自动省略 `mean_type` / `unit_class`，不再整段跳过外部统计注入
 
 ## [1.3.0] - 2026-11-04
 
@@ -50,7 +55,8 @@
 - Token 过期持久通知与 UI 内重新配置流程（reconfigure）
 - 适配 HA 2026.11 统计 API（`StatisticMetaData.unit_class`）
 
-[Unreleased]: https://github.com/y17920/ho-fuqing-water/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/y17920/ho-fuqing-water/compare/v1.3.2...HEAD
+[1.3.2]: https://github.com/y17920/ho-fuqing-water/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/y17920/ho-fuqing-water/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/y17920/ho-fuqing-water/compare/v1.2.0...v1.3.0
 [1.2.0]: https://github.com/y17920/ho-fuqing-water/releases/tag/v1.2.0
